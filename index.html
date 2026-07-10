@@ -2,388 +2,271 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Digital Stamp Rally</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>デジタルスタンプラリー</title>
     <!-- QRコード解析ライブラリ jsQR -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <style>
-        :root {
-            /* 厳選されたプレミアムカラーシステム */
-            --brand-primary: #3b82f6;
-            --brand-gradient: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
-            --brand-success: #10b981;
-            --brand-accent: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            
-            /* メイン背景とニュアンスカラー */
-            --bg-main: #f8fafc;
-            --bg-card: #ffffff;
-            --border-subtle: rgba(226, 232, 240, 0.8);
-            
-            /* タイポグラフィ */
-            --text-title: #0f172a;
-            --text-body: #334155;
-            --text-muted: #94a3b8;
-            
-            /* モダングラフィックパーツ */
-            --shadow-soft: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
-            --shadow-lifted: 0 20px 40px -4px rgba(15, 23, 42, 0.08), 0 8px 16px -4px rgba(15, 23, 42, 0.04);
-            --shadow-inset: inset 0 2px 4px 0 rgba(0, 0, 0, 0.04);
-        }
-        
-        * { 
-            box-sizing: border-box; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -webkit-tap-highlight-color: transparent;
-        }
-
         body {
-            background-color: var(--bg-main);
-            color: var(--text-body);
+            font-family: Arial, sans-serif;
+            text-align: center;
             margin: 0;
             padding: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
+            background-color: #f0f0f0;
         }
 
-        /* 画面上半分: スタンプラリー台紙エリア */
-        .board-container {
-            height: 52vh;
-            padding: 28px 24px 20px 24px;
+        /* 画面上半分: スタンプ表示エリア */
+        .stamp-area {
+            height: 50vh;
+            box-sizing: border-box;
+            padding: 20px;
+            background-color: #ffffff;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: var(--bg-card);
-            border-bottom: 1px solid var(--border-subtle);
-            box-shadow: var(--shadow-soft);
-        }
-        
-        .board-header {
-            text-align: center;
-            margin-bottom: 24px;
         }
 
-        .board-header h1 { 
-            font-size: 1.35rem; 
-            font-weight: 800;
-            letter-spacing: -0.03em;
-            margin: 0 0 4px 0; 
-            color: var(--text-title); 
-        }
-
-        .board-header p {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin: 0;
-            font-weight: 500;
-            letter-spacing: 0.05em;
-        }
-
-        /* スタンプマスのグリッド配置 */
         .stamp-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            width: 100%;
-            max-width: 340px;
+            gap: 15px;
+            max-width: 300px;
+            margin: 0 auto;
         }
 
-        /* 職人が作り込んだような質感のスタンプマス（未獲得） */
         .stamp-slot {
-            aspect-ratio: 1;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 20px;
+            width: 80px;
+            height: 80px;
+            border: 2px dashed #999;
+            border-radius: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #999;
+            background-color: #fafafa;
             position: relative;
-            box-shadow: var(--shadow-inset);
-            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-            overflow: hidden;
         }
 
-        /* マスの中の薄いバックグラウンド数字 */
-        .stamp-num {
-            font-size: 1.6rem;
-            font-weight: 800;
-            color: #e2e8f0;
-            user-select: none;
-        }
-
-        /* 獲得済みのマスの高級感あふれるグラフィック表現 */
         .stamp-slot.active {
-            background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
-            border: 1px solid #bbf7d0;
-            box-shadow: var(--shadow-soft), inset 0 0 0 3px #ffffff;
+            border: 2px solid #ff4500;
+            background-color: #fff0f0;
+            color: #ff4500;
         }
 
-        /* スタンプマークそのものの意匠 */
-        .stamp-icon { 
-            font-size: 2.1rem; 
-            display: none; 
-            position: absolute;
-            z-index: 2;
-            filter: drop-shadow(0 4px 8px rgba(16, 185, 129, 0.15));
+        .stamp-icon {
+            display: none;
+            font-size: 40px;
         }
-        .stamp-slot.active .stamp-icon { display: block; }
-        .stamp-slot.active .stamp-num { opacity: 0; }
 
-        /* スキャン成功時の上質で重みのあるスタンプアニメーション */
-        .stamp-slot.just-stamped .stamp-icon {
+        .stamp-slot.active .stamp-icon {
             display: block;
-            animation: premium-stamp 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
-        .stamp-slot.just-stamped .stamp-num { opacity: 0; }
 
-        /* 画面下半分: 情報・コンテンツエリア */
+        .stamp-slot.active .stamp-num {
+            display: none;
+        }
+
+        /* スキャンした瞬間のアニメーション */
+        .stamp-slot.just-stamped {
+            animation: stamp-animation 0.5s ease-out;
+        }
+
+        @keyframes stamp-animation {
+            0% { transform: scale(3); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* 画面下半分: コンテンツ表示エリア */
         .content-area {
-            height: 48vh;
-            padding: 24px 24px calc(100px + env(safe-area-inset-bottom)) 24px;
+            height: 50vh;
+            box-sizing: border-box;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
         }
 
-        .status-widget {
-            background: var(--bg-card);
-            border-radius: 24px;
-            padding: 20px 24px;
-            box-shadow: var(--shadow-soft);
-            border: 1px solid rgba(15, 23, 42, 0.03);
-            width: 100%;
-            max-width: 340px;
-            text-align: center;
+        .status-msg {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 20px;
         }
 
-        .status-msg { 
-            font-size: 0.95rem; 
-            font-weight: 600; 
-            color: var(--text-body); 
-            line-height: 1.5;
-        }
-        
-        /* コンプリート時のプレミアム引換ボタン */
         .exchange-btn {
             display: none;
-            background: var(--brand-accent);
-            color: #fff;
+            background-color: #ff9900;
+            color: white;
             border: none;
-            padding: 16px 32px;
-            font-size: 1rem;
-            font-weight: 700;
-            border-radius: 18px;
-            box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.4);
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
             cursor: pointer;
-            margin-top: 16px;
-            width: 100%;
-            max-width: 340px;
-            transition: transform 0.1s ease;
-            animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        .exchange-btn:active {
-            transform: scale(0.98);
         }
 
-        /* 宙に浮かせたモダンなフローティングナビゲーション */
-        .floating-nav {
+        /* 下部固定ナビゲーション */
+        .fixed-nav {
             position: fixed;
-            bottom: calc(16px + env(safe-area-inset-bottom));
-            left: 50%;
-            transform: translateX(-50%);
-            width: calc(100% - 32px);
-            max-width: 360px;
-            height: 72px;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background-color: #ffffff;
+            border-top: 1px solid #ccc;
             display: flex;
-            justify-content: space-between;
+            justify-content: space-around;
             align-items: center;
-            padding: 0 10px;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            border-radius: 22px;
-            box-shadow: var(--shadow-lifted);
-            z-index: 10;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
         }
 
         .nav-btn {
-            height: 52px;
+            flex: 1;
+            height: 100%;
             border: none;
-            border-radius: 16px;
-            font-weight: 700;
-            font-size: 0.9rem;
+            background: none;
+            font-size: 16px;
+            font-weight: bold;
             cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        
-        .btn-camera { 
-            width: 58%; 
-            background: var(--brand-gradient); 
-            color: white;
-            box-shadow: 0 6px 20px -4px rgba(79, 70, 229, 0.3);
-        }
-        .btn-camera:active {
-            transform: scale(0.96);
-            box-shadow: 0 4px 12px -4px rgba(79, 70, 229, 0.3);
-        }
-        
-        .btn-info { 
-            width: 38%; 
-            background-color: #f1f5f9; 
-            color: #475569; 
-        }
-        .btn-info:active {
-            background-color: #e2e8f0;
-        }
-        
-        .nav-btn:disabled { 
-            background: #f1f5f9 !important; 
-            color: var(--text-muted) !important; 
-            box-shadow: none !important;
-            cursor: not-allowed; 
-            transform: none !important;
         }
 
-        /* ハイクオリティな美しさを持つシームレスモーダル */
+        .btn-camera {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-info {
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        .nav-btn:disabled {
+            background-color: #ccc !important;
+            color: #666 !important;
+            cursor: not-allowed;
+        }
+
+        /* モーダル */
         .modal {
             display: none;
             position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(15, 23, 42, 0.4);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
             z-index: 100;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 24px;
+            flex-direction: column;
         }
 
         .modal-content {
-            background: var(--bg-card);
-            color: var(--text-body);
-            width: 100%;
-            max-width: 360px;
-            border-radius: 28px;
-            padding: 28px;
-            box-shadow: var(--shadow-lifted);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            max-height: 75vh;
+            background-color: white;
+            width: 85%;
+            max-width: 400px;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            text-align: left;
+            max-height: 80vh;
             overflow-y: auto;
         }
 
         .modal-title {
-            font-size: 1.15rem;
-            font-weight: 800;
-            margin: 0 0 16px 0;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
             text-align: center;
-            color: var(--text-title);
-            letter-spacing: -0.02em;
         }
 
         .close-modal {
-            background: #f1f5f9; color: #475569; border: none;
-            padding: 14px; border-radius: 16px; margin-top: 20px; width: 100%;
-            font-weight: 700; cursor: pointer; font-size: 0.9rem;
-            transition: background 0.2s;
-        }
-        .close-modal:active { background: #e2e8f0; }
-
-        /* カメラファインダービュー */
-        #camera-modal video { 
-            width: 100%; 
-            max-width: 360px; 
-            border-radius: 20px; 
-            background: #000; 
-            box-shadow: var(--shadow-lifted);
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 20px;
+            cursor: pointer;
+            text-align: center;
         }
 
-        /* スタッフ操作用スライダートラックの高級化 */
+        /* カメラ表示用 */
+        #video {
+            width: 100%;
+            max-width: 400px;
+            background-color: #000;
+            border-radius: 5px;
+        }
+
+        /* スタッフ用スライダー */
         .slider-container {
             width: 100%;
-            background: #f8fafc;
-            border-radius: 100px;
+            background-color: #e0e0e0;
+            border-radius: 25px;
             position: relative;
-            margin: 24px 0 10px 0;
-            height: 56px;
+            margin-top: 20px;
+            height: 50px;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
-            border: 1px solid #e2e8f0;
-            box-shadow: var(--shadow-inset);
         }
+
         .slider-text {
             position: absolute;
-            font-size: 0.8rem;
-            color: #64748b;
-            font-weight: 700;
+            font-size: 14px;
+            color: #666;
             pointer-events: none;
-            z-index: 1;
-            letter-spacing: -0.01em;
         }
+
         .staff-slider {
             -webkit-appearance: none;
-            appearance: none;
             width: 100%;
             height: 100%;
             background: transparent;
+            outline: none;
             position: relative;
             z-index: 2;
-            margin: 0;
-            outline: none;
         }
+
         .staff-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            background: #10b981;
+            background: #28a745;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-            transition: transform 0.1s;
-        }
-        .staff-slider::-webkit-slider-thumb:active {
-            transform: scale(0.95);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
         }
 
         .btn-reset {
-            background: transparent; color: #f43f5e; border: 1px dashed #fecdd3;
-            padding: 10px; border-radius: 14px; margin-top: 36px; width: 100%;
-            font-weight: 600; cursor: pointer; font-size: 0.8rem;
-        }
-
-        /* アニメーションカーブの精密化 */
-        @keyframes premium-stamp {
-            0% { transform: scale(4); opacity: 0; filter: blur(4px); }
-            50% { transform: scale(0.9) rotate(-6deg); opacity: 1; filter: blur(0); }
-            75% { transform: scale(1.05) rotate(2deg); }
-            100% { transform: scale(1) rotate(0deg); }
-        }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 5px;
+            margin-top: 30px;
+            width: 100%;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
 
     <!-- 画面上半分: スタンプ表示エリア -->
-    <div class="board-container">
-        <div class="board-header">
-            <h1>Campus Stamp Rally</h1>
-            <p>STAMP COLLECTION</p>
-        </div>
+    <div class="stamp-area">
+        <h2 style="margin-top: 0; margin-bottom: 15px;">キャンパススタンプラリー</h2>
         <div class="stamp-grid">
             <div class="stamp-slot" id="slot-1"><span class="stamp-num">1</span><span class="stamp-icon">🎪</span></div>
             <div class="stamp-slot" id="slot-2"><span class="stamp-num">2</span><span class="stamp-icon">🧪</span></div>
@@ -396,35 +279,33 @@
 
     <!-- 画面下半分: コンテンツ表示エリア -->
     <div class="content-area" id="content-area">
-        <div class="status-widget">
-            <div class="status-msg" id="status-msg">QRコードを読み込んでスタンプを集めよう！</div>
-        </div>
+        <div class="status-msg" id="status-msg">QRコードを読み込んでスタンプを集めよう！</div>
         <button class="exchange-btn" id="exchange-btn" onclick="openExchangeModal()">景品を引き換える</button>
     </div>
 
-    <!-- フローティング固定ナビゲーション -->
-    <div class="floating-nav">
-        <button class="nav-btn btn-camera" id="nav-camera-btn" onclick="openCamera()">📷 スキャン起動</button>
-        <button class="nav-btn btn-info" onclick="toggleModal('info-modal', true)">📝 タップで解説</button>
+    <!-- 固定ナビゲーション -->
+    <div class="fixed-nav">
+        <button class="nav-btn btn-camera" id="nav-camera-btn" onclick="openCamera()">📷 カメラを起動する</button>
+        <button class="nav-btn btn-info" onclick="toggleModal('info-modal', true)">説明ページ</button>
     </div>
 
     <!-- カメラモーダル -->
     <div id="camera-modal" class="modal">
-        <div class="modal-title" style="color:white; margin-bottom:20px;">QRコードを枠内に収めてください</div>
+        <div style="color: white; margin-bottom: 10px; font-weight: bold;">QRコードをかざしてください</div>
         <video id="video" playsinline></video>
         <canvas id="canvas" style="display:none;"></canvas>
-        <button class="close-modal" onclick="closeCamera()" style="max-width:360px;">閉じる</button>
+        <button class="close-modal" onclick="closeCamera()" style="width: 85%; max-width: 400px;">キャンセル</button>
     </div>
 
     <!-- 説明ページモーダル -->
     <div id="info-modal" class="modal">
         <div class="modal-content">
-            <div class="modal-title" style="color:var(--text-title);">スタンプラリーの遊び方</div>
-            <p style="font-size:0.85rem; line-height: 1.6; color:#475569; margin-bottom:20px;">各スポットに設置されている専用のQRコードをカメラで読み取ると、自動的にスタンプが押印されます。全6箇所のスタンプをすべて集めると、景品交換の権利を獲得できます。</p>
-            <p style="color:#e11d48; font-size:0.75rem; line-height: 1.5; background:#fff1f2; padding:12px; border-radius:14px; border:1px solid #ffe4e6;">※ブラウザのプライベートモード（シークレットモード）をご利用の場合、チェック状況の保存が行われません。必ず通常のブラウザでご利用ください。</p>
+            <div class="modal-title">スタンプラリーの遊び方</div>
+            <p>各スポットにある専用QRコードをカメラで読み取るとスタンプが押されます。6箇所のスタンプをすべて集めると、景品と交換できます。</p>
+            <p style="color: red; font-size: 13px;">※ブラウザのシークレットモード（プライベートブラウズ）ではスタンプの保存ができません。通常のブラウザアプリで開いてください。</p>
             <button class="close-modal" onclick="toggleModal('info-modal', false)">閉じる</button>
 
-            <!-- テスト用リセットボタン -->
+            <!-- テスト用データリセット -->
             <button class="btn-reset" onclick="resetApp()">データをテストリセットする</button>
         </div>
     </div>
@@ -432,15 +313,15 @@
     <!-- 景品引換スタッフ確認モーダル -->
     <div id="exchange-modal" class="modal">
         <div class="modal-content" style="text-align: center;">
-            <div class="modal-title" style="color:#059669; font-size:1.3rem; margin-bottom:8px;">🏆 Complete!</div>
-            <p style="font-size:0.9rem; margin-bottom: 6px; color:var(--text-title); font-weight:600;">景品交換の準備ができました</p>
-            <p style="font-size:0.8rem; color:#64748b; margin: 0 0 20px 0;">これより先は引換所のスタッフが操作を行います。画面を表示したままスタッフへご提示ください。</p>
+            <div class="modal-title" style="color: #28a745;">🎉 スタンプコンプリート！</div>
+            <p>景品交換所のスタッフにこの画面を見せてください。</p>
+            <p style="font-size: 12px; color: #666;">（※ここから先はスタッフが操作します）</p>
             
             <div class="slider-container">
                 <span class="slider-text">右にスライドして確定 👉</span>
                 <input type="range" class="staff-slider" id="staff-slider" min="0" max="100" value="0" oninput="checkSlider(this)">
             </div>
-            <button class="close-modal" onclick="toggleModal('exchange-modal', false)">キャンセル</button>
+            <button class="close-modal" onclick="toggleModal('exchange-modal', false)">戻る</button>
         </div>
     </div>
 
@@ -475,15 +356,15 @@
         const cameraBtn = document.getElementById('nav-camera-btn');
 
         if (isExchanged) {
-            statusMsg.innerHTML = "<span style='color:#059669; font-size:1.05rem; font-weight:700;'>🎉 景品引換完了<br><span style='font-size:0.85rem; color:#64748b; font-weight:500;'>イベントへのご参加ありがとうございました。</span></span>";
+            statusMsg.innerHTML = "<span style='color:green;'>景品引換が完了しています。<br>ありがとうございました！</span>";
             exchangeBtn.style.display = 'none';
             cameraBtn.disabled = true;
         } else if (myStamps.length === TOTAL_SPOTS) {
-            statusMsg.innerText = "すべてのスタンプの獲得が完了しました。";
+            statusMsg.innerText = "スタンプがすべて集まりました！";
             exchangeBtn.style.display = 'block';
             cameraBtn.disabled = false;
         } else {
-            statusMsg.innerHTML = `現在のスタンプ獲得状況<br><span style='font-size:1.3rem; font-weight:800; color:var(--brand-primary);'>${myStamps.length}</span> <span style='color:var(--text-muted); font-size:0.9rem;'>/ ${TOTAL_SPOTS}</span>`;
+            statusMsg.innerText = `現在のスタンプ: ${myStamps.length} / ${TOTAL_SPOTS}`;
             exchangeBtn.style.display = 'none';
             cameraBtn.disabled = false;
         }
@@ -507,7 +388,7 @@
                 animationFrameId = requestAnimationFrame(tick);
             })
             .catch(function(err) {
-                alert("カメラの起動に失敗しました。ブラウザの設定からカメラアクセス権限を許可してください。");
+                alert("カメラの起動に失敗しました。カメラのアクセス権限を許可してください。");
                 closeCamera();
             });
     }
@@ -568,9 +449,10 @@
                 }
 
                 checkStatus();
+                alert(`スタンプ ${spotNum} を獲得しました！`);
             }
         } else {
-            alert("無効なQRコードが検出されました。正規のコードをスキャンしてください。");
+            alert("スタンプラリー用のQRコードではありません。");
         }
     }
 
@@ -587,11 +469,12 @@
             localStorage.setItem('oc_exchanged', 'true');
             toggleModal('exchange-modal', false);
             checkStatus();
+            alert("景品の引き換えが完了しました。");
         }
     }
 
     function resetApp() {
-        if (confirm("記録されているすべてのデータをリセットし、初期状態へ戻しますか？")) {
+        if (confirm("データをすべて削除して最初からやり直しますか？")) {
             localStorage.removeItem('oc_stamps_v2');
             localStorage.removeItem('oc_exchanged');
             myStamps = [];
@@ -600,6 +483,7 @@
             renderStamps();
             checkStatus();
             toggleModal('info-modal', false);
+            alert("リセットしました。");
         }
     }
 </script>
